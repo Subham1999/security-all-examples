@@ -18,4 +18,8 @@ public interface JwtTokenUtil {
     public String generateToken(UserDetails userDetails);
 
     public Boolean validateToken(String jwtToken, UserDetails userDetails);
+    
+    public Boolean isValid(String jwtToken);
+
+    public String role(String jwtToken);
 }

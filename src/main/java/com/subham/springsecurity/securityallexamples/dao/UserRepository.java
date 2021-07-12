@@ -6,6 +6,6 @@ import com.subham.springsecurity.securityallexamples.model.User;
 
 public interface UserRepository extends JpaRepository<User, String> {
 
-    User findByUserName(String userName);
+	User findByUserName(String userName);
 
 }

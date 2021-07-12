@@ -21,40 +21,40 @@ import com.subham.springsecurity.securityallexamples.security.MyUserDetailsServi
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtTokenUtilImpl jwtTokenUtil;
+	@Autowired
+	private JwtTokenUtilImpl jwtTokenUtil;
 
-    @Autowired
-    private MyUserDetailsService userDetailsService;
+	@Autowired
+	private MyUserDetailsService userDetailsService;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-	    throws ServletException, IOException {
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
 
-	final String authHeader = request.getHeader("Authorization");
-	String userName = null;
-	String jwtToken = null;
+		final String authHeader = request.getHeader("Authorization");
+		String userName = null;
+		String jwtToken = null;
 
-	if (authHeader != null && authHeader.startsWith("Bearer ")) {
-	    jwtToken = authHeader.substring(7);
-	    userName = jwtTokenUtil.extractUserName(jwtToken);
+		if (authHeader != null && authHeader.startsWith("Bearer ")) {
+			jwtToken = authHeader.substring(7);
+			userName = jwtTokenUtil.extractUserName(jwtToken);
+		}
+
+		if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+			UserDetails loadUserByUsername = userDetailsService.loadUserByUsername(userName);
+
+			if (jwtTokenUtil.validateToken(jwtToken, loadUserByUsername)) {
+				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+						jwtToken, null, loadUserByUsername.getAuthorities());
+
+				usernamePasswordAuthenticationToken
+						.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+				SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+			}
+		}
+
+		filterChain.doFilter(request, response);
 	}
-
-	if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-	    UserDetails loadUserByUsername = userDetailsService.loadUserByUsername(userName);
-
-	    if (jwtTokenUtil.validateToken(jwtToken, loadUserByUsername)) {
-		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-			jwtToken, null, loadUserByUsername.getAuthorities());
-
-		usernamePasswordAuthenticationToken
-			.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-		SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-	    }
-	}
-
-	filterChain.doFilter(request, response);
-    }
 
 }
