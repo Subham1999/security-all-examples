@@ -1,11 +1,9 @@
 package com.subham.springsecurity.securityallexamples.security;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collector;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -82,7 +80,6 @@ public class JwtTokenUtilImpl implements JwtTokenUtil {
 		return !(isTokenExpired(jwtToken));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String role(String jwtToken) {
 		return "ADMIN";

@@ -12,16 +12,12 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.subham.springsecurity.securityallexamples.dao.UserRepository;
 import com.subham.springsecurity.securityallexamples.security.filters.JwtTokenFilter;
 
 @SuppressWarnings("deprecation")
 @EnableWebSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-	@SuppressWarnings("unused")
-	@Autowired
-	private UserRepository userRepository;
 	@Autowired
 	private MyUserDetailsService myUserDetailsService;
 
@@ -36,21 +32,21 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		 * 
 		 */
 
-		// auth.inMemoryAuthentication()
-		// .withUser("user").password("123").roles("USER")
-		// .and()
-		// .withUser("admin").password("123").roles("ADMIN");
+//		auth.inMemoryAuthentication().withUser("user").password("123").roles("USER").and().withUser("admin")
+//				.password("123").roles("ADMIN");
 
 		auth.userDetailsService(myUserDetailsService);
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.cors().disable().csrf().disable().authorizeRequests().antMatchers("/authenticate", "/authorize-token").permitAll()
-				.antMatchers("/pub/**").permitAll().antMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-				.antMatchers("/admin/**").hasRole("ADMIN").anyRequest().authenticated().and().sessionManagement()
+		http.cors().disable().csrf().disable().authorizeRequests()
+				.antMatchers("/authenticate", "/authorize-token", "/health")
+				.permitAll()
+				.antMatchers("/pub/**").permitAll()
+				.anyRequest().authenticated().and().sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-				.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class).exceptionHandling();
+				.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);//.exceptionHandling();
 	}
 
 	@Bean

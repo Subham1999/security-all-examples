@@ -1,5 +1,7 @@
 package com.subham.springsecurity.securityallexamples.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +63,8 @@ public class AuthController {
 	}
 
 	@PostMapping(value = "/authenticate")
-	public ResponseEntity<AuthResponse> createAuthenticationToken(@RequestBody AuthRequest authenticationRequest)
-			throws Exception {
+	public ResponseEntity<AuthResponse> createAuthenticationToken(HttpServletRequest httpServletRequest,
+			@RequestBody AuthRequest authenticationRequest) throws Exception {
 
 		try {
 			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -74,8 +76,9 @@ public class AuthController {
 		final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUserName());
 
 		final String jwt = jwtTokenUtil.generateToken(userDetails);
-
-		return ResponseEntity.ok(new AuthResponse(jwt));
+		AuthResponse authResponse = new AuthResponse(jwt, httpServletRequest.getRequestURL().toString(),
+				httpServletRequest.getRemoteAddr());
+		return ResponseEntity.ok(authResponse);
 	}
 
 	@PostMapping(value = "/authorize-token")
@@ -95,4 +98,35 @@ public class AuthController {
 		// [Bearer ][***jwtToken***]
 		return authorizationHeaderVal.substring(7);
 	}
+
+	@PostMapping("/pub/new-auth-registration")
+	public ResponseEntity<String> newAuthRegistration(HttpServletRequest httpServletRequest,
+			@RequestBody(required = true) User user) throws Exception {
+		try {
+
+			String userName = user.getUserName();
+			if (userName != null && repository.findByUserName(userName) == null) {
+				if (user.getPassword() != null) {
+					User user2 = repository.save(user);
+					return ResponseEntity.ok(user2 + " registered");
+				} else {
+					return ResponseEntity.badRequest().body("password can not be null");
+				}
+			} else {
+				if (userName == null) {
+					return ResponseEntity.badRequest().body("userName can not be null");
+				} else {
+					return ResponseEntity.badRequest().body("user with userName '" + userName + "' already exists");
+				}
+			}
+		} catch (Exception exception) {
+			return ResponseEntity.badRequest().body(exception.getLocalizedMessage());
+		}
+	}
+
+	@GetMapping("/health")
+	public ResponseEntity<String> health() {
+		return ResponseEntity.ok("UP");
+	}
+
 }
